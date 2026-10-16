@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KS Contextual Cueing Visual Search Experiment</title>
+  <meta name="description" content="A high-precision web-based visual search contextual cueing experiment supporting 4-factor design, keyboard and mouse trajectory tracking, and CSV export.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">KS</div>
+      <div class="brand-titles">
+        <h1>Contextual Cueing Visual Search</h1>
+        <p>12&times;12 Grid &bull; 4-Factor Balanced Design (32 trials/block)</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="badge" id="appModeBadge">
+        <span class="badge-dot"></span>
+        <span id="appModeText">Configuration Mode</span>
+      </span>
+      <button class="btn btn-outline btn-sm" id="fullscreenToggleBtn" title="Toggle Fullscreen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        Fullscreen
+      </button>
+      <button class="btn btn-outline btn-sm" id="themeToggleBtn" title="Toggle Dark/Light Theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="view-container">
+
+    <!-- ================= VIEW 1: Researcher Configuration ================= -->
+    <section id="setupView" class="view-section active">
+      <div class="config-header">
+        <h2>Experiment Parameter Setup</h2>
+        <p>Configure participant metadata, factorial block options, response modality (Keyboard vs Mouse click trajectory tracking), timing, and auditory post-response feedback.</p>
+      </div>
+
+      <div class="config-grid">
+        <!-- Column 1: Participant & Response Modality -->
+        <div class="col-6 card">
+          <div class="card-title">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Participant & Response Mode
+            </h3>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="participantId">Participant ID</label>
+            <input type="text" id="participantId" class="form-control" value="SUBJ_001" autocomplete="off" />
+            <div class="form-help">Unique identifier saved in the CSV data file.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Response Modality (Selectable Correct Response Option)</label>
+            <div class="radio-cards">
+              <label class="radio-card selected" id="radioCardKeypress">
+                <input type="radio" name="responseMode" value="keypress" checked />
+                <div class="radio-card-header">
+                  <span>Option 1: Keypress</span>
+                  <span class="badge" style="font-size:0.65rem">Default</span>
+                </div>
+                <div class="radio-card-desc">Press keyboard key when target is found. <em>Does not save mouse coordinates.</em></div>
+              </label>
+
+              <label class="radio-card" id="radioCardMouse">
+                <input type="radio" name="responseMode" value="mouse_click" />
+                <div class="radio-card-header">
+                  <span>Option 2: Mouse Click</span>
+                  <span class="badge" style="font-size:0.65rem; background:rgba(16, 185, 129, 0.15); color:var(--accent-emerald);">Trajectories</span>
+                </div>
+                <div class="radio-card-desc">Click on target location in grid. <em>Saves streaming X,Y coordinates and timestamps.</em></div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="keyConfigGroup">
+            <label class="form-label">Keyboard Response Keys</label>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="keyTiltLeft">T Tilted Left (90&deg;)</label>
+                <input type="text" id="keyTiltLeft" class="form-control" value="ArrowLeft" />
+                <div class="form-help">e.g. ArrowLeft, z, or f</div>
+              </div>
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="keyTiltRight">T Tilted Right (90&deg;)</label>
+                <input type="text" id="keyTiltRight" class="form-control" value="ArrowRight" />
+                <div class="form-help">e.g. ArrowRight, m, or j</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="blockCount">Number of Blocks</label>
+            <div class="flex-row">
+              <input type="number" id="blockCount" class="form-control" min="1" max="30" value="2" style="width: 100px;" />
+              <span class="form-help" style="margin: 0;">Default: 2 blocks (64 trials). Supports 1 to 30 blocks (up to 960 trials).</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="flex-row" style="cursor: pointer;">
+              <input type="checkbox" id="includePractice" style="width: 18px; height: 18px; accent-color: var(--accent-blue);" />
+              <span style="font-size: 0.875rem; font-weight: 600;">Include Practice Block (8 trials before Block 1)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Column 2: Factorial Design & Sound -->
+        <div class="col-6 card">
+          <div class="card-title">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              4-Factor Balanced Design (32 trials/block)
+            </h3>
+          </div>
+
+          <div class="factor-pill-list">
+            <div class="factor-pill">
+              <span class="factor-name">Factor 1: Target Quadrant</span>
+              <span class="factor-val">4 Levels (Q1, Q2, Q3, Q4)</span>
+            </div>
+            <div class="factor-pill">
+              <span class="factor-name">Factor 2: Configuration</span>
+              <span class="factor-val">2 Levels (Repeated vs Novel)</span>
+            </div>
+            <div class="factor-pill">
+              <span class="factor-name">Factor 3: Sound Trigger</span>
+              <span class="factor-val">2 Levels (Sound 1 vs Sound 2)</span>
+            </div>
+            <div class="factor-pill">
+              <span class="factor-name">Factor 4: Set Size</span>
+              <span class="factor-val" id="factorSetSizeLabel">2 Levels (8 vs 16)</span>
+            </div>
+          </div>
+
+          <div class="form-group mt-2">
+            <label class="form-label">Set Size Levels (Items per display)</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="setSize1">Level 1 Size</label>
+                <input type="number" id="setSize1" class="form-control" value="8" min="2" max="64" />
+              </div>
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="setSize2">Level 2 Size</label>
+                <input type="number" id="setSize2" class="form-control" value="16" min="2" max="64" />
+              </div>
+            </div>
+            <div class="form-help">1 Target T + (Set Size - 1) Distractor L's.</div>
+          </div>
+
+          <div class="form-group mt-2">
+            <label class="form-label">Post-Response Audio Triggers (Factor 3)</label>
+            <div class="sound-test-row">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnTestSound1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                Test Sound 1
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnTestSound2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                Test Sound 2
+              </button>
+              <div class="flex-row" style="flex:1;">
+                <label class="form-help" style="margin:0; white-space:nowrap;">Vol:</label>
+                <input type="range" id="soundVolume" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--accent-blue);" />
+              </div>
+            </div>
+            <div class="form-help">Sounds play immediately upon response; neutral audio cues (do not indicate accuracy).</div>
+          </div>
+
+          <div class="form-group mt-2">
+            <label class="form-label">Timing Parameters (Milliseconds)</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="fixationDuration">Fixation Cross Duration</label>
+                <input type="number" id="fixationDuration" class="form-control" value="500" min="200" max="3000" step="50" />
+              </div>
+              <div>
+                <label class="form-label" style="font-size:0.75rem;" for="itiDuration">Inter-Trial Interval (ITI)</label>
+                <input type="number" id="itiDuration" class="form-control" value="750" min="200" max="3000" step="50" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Width: 12x12 Grid Visualizer & Quadrant Mapping Preview -->
+        <div class="col-12 card">
+          <div class="card-title">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              12 &times; 12 Grid &amp; Target Quadrant Candidate Layout
+            </h3>
+            <button class="btn btn-outline btn-sm" id="btnGeneratePreview">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+              Sample Display Preview
+            </button>
+          </div>
+
+          <div class="grid-preview-container">
+            <div class="grid-12x12" id="gridPreview">
+              <!-- Dynamically populated 144 cells -->
+            </div>
+
+            <div class="grid-legend">
+              <div class="legend-item">
+                <span class="legend-swatch" style="background:var(--quadrant-1)"></span>
+                <span>Quadrant 1: (3,3), (4,3), (3,4), (4,4)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch" style="background:var(--quadrant-2)"></span>
+                <span>Quadrant 2: (9,3), (10,3), (9,4), (10,4)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch" style="background:var(--quadrant-3)"></span>
+                <span>Quadrant 3: (3,9), (4,9), (3,10), (4,10)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch" style="background:var(--quadrant-4)"></span>
+                <span>Quadrant 4: (9,9), (10,9), (9,10), (10,10)</span>
+              </div>
+            </div>
+            <div class="form-help" id="gridPreviewStatus">16 target candidate locations mapped into 4 quadrants. Distractors occupy remaining cells. During search trials, the grid is invisible and all letters are spatially jittered to prevent collinearities.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Launch Actions Bar -->
+      <div class="config-actions-bar">
+        <div>
+          <strong id="sessionSummaryText">Ready to start: 2 Blocks &bull; 64 Total Trials</strong>
+          <div class="form-help" style="margin: 0;">Repeated configurations generated in Block 1 are preserved across blocks.</div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-primary btn-lg" id="btnProceedToInstructions">
+            Proceed to Experiment
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= VIEW 2: Participant Instructions ================= -->
+    <section id="instructionsView" class="view-section">
+      <div class="instruction-box">
+        <h2>Visual Search Experiment Instructions</h2>
+        <p class="lead">Please read the following instructions carefully before starting.</p>
+
+        <div class="stimulus-demo-grid">
+          <div class="stimulus-card">
+            <div class="stimulus-icon-frame" style="transform: rotate(-90deg);">T</div>
+            <span>Target T (Left 90&deg;)</span>
+          </div>
+          <div class="stimulus-card">
+            <div class="stimulus-icon-frame" style="transform: rotate(90deg);">T</div>
+            <span>Target T (Right 90&deg;)</span>
+          </div>
+          <div class="stimulus-card">
+            <div class="stimulus-icon-frame" style="transform: rotate(0deg); opacity: 0.85;">L</div>
+            <span>Distractor L (0&deg;)</span>
+          </div>
+          <div class="stimulus-card">
+            <div class="stimulus-icon-frame" style="transform: rotate(180deg); opacity: 0.85;">L</div>
+            <span>Distractor L (180&deg;)</span>
+          </div>
+        </div>
+
+        <div class="instruction-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Fixate the Center</h4>
+            <p>Each trial begins with a central plus sign (<strong>+</strong>). Keep your eyes centered on the cross until the letter search display appears.</p>
+          </div>
+        </div>
+
+        <div class="instruction-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Search for the Target "T"</h4>
+            <p>A rotated <strong>T</strong> (tilted either 90&deg; to the left or 90&deg; to the right) is hidden among rotated <strong>L</strong>'s. Find it as quickly and accurately as possible.</p>
+          </div>
+        </div>
+
+        <div class="instruction-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4 id="instructionResponseTitle">Respond Promptly</h4>
+            <p id="instructionResponseDesc">
+              Press the corresponding keyboard key as soon as you spot the target T:
+              <br><kbd style="background:#222; padding:2px 6px; border-radius:4px; border:1px solid #444;" id="keyLabelLeft">Left Arrow</kbd> for T tilted left, or 
+              <kbd style="background:#222; padding:2px 6px; border-radius:4px; border:1px solid #444;" id="keyLabelRight">Right Arrow</kbd> for T tilted right.
+            </p>
+          </div>
+        </div>
+
+        <div class="instruction-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Feedback &amp; Next Trial</h4>
+            <p>A brief sound will play after each response. If an incorrect response is made, the central fixation cross will turn <strong style="color: #ef4444;">red</strong> during the interval before the next trial.</p>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem;">
+          <button class="btn btn-outline" id="btnBackToConfig">
+            &larr; Back to Setup
+          </button>
+          <button class="btn btn-success btn-lg" id="btnStartExperimentNow">
+            Start Experiment
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: Between-Block Break ================= -->
+    <section id="breakView" class="view-section">
+      <div class="break-box">
+        <div class="break-icon">&#9749;</div>
+        <h2 id="breakTitle">Block 1 Completed!</h2>
+        <p id="breakDesc">Take a brief pause to rest your eyes. When you are ready to continue with the next block, press the button below or tap the Spacebar.</p>
+        <button class="btn btn-primary btn-lg" id="btnResumeNextBlock">
+          Continue to Next Block &rarr;
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 5: Debriefing & CSV Export ================= -->
+    <section id="debriefView" class="view-section">
+      <div class="debrief-header">
+        <h2>Experiment Completed!</h2>
+        <p>All experimental blocks finished successfully. Data is ready for download and statistical analysis.</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Completed Trials</span>
+          <span class="stat-value" id="statTotalTrials">64</span>
+          <span class="stat-sub" id="statBlocksSub">2 Blocks (32 trials/block)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Overall Accuracy</span>
+          <span class="stat-value" id="statAccuracy">98.4%</span>
+          <span class="stat-sub" id="statAccuracySub">Correct responses</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Mean Reaction Time</span>
+          <span class="stat-value" id="statMeanRT">842 ms</span>
+          <span class="stat-sub">Across all valid trials</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Contextual Cueing RT Effect</span>
+          <span class="stat-value" id="statCueingDiff">-64 ms</span>
+          <span class="stat-sub" id="statCueingSub">Repeated vs Novel RT difference</span>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>Contextual Cueing Learning Slope</h4>
+          <p>Mean RT (ms) across blocks for Repeated vs Novel configurations</p>
+          <div class="svg-chart-container" id="cueingChartContainer">
+            <!-- Dynamic SVG Chart -->
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Visual Search Slope by Set Size</h4>
+          <p>Reaction Time comparison across the two Set Size levels</p>
+          <div class="svg-chart-container" id="setSizeChartContainer">
+            <!-- Dynamic SVG Chart -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw Data Table -->
+      <div class="data-table-container">
+        <div class="table-header-row">
+          <div>
+            <h4 style="font-size:1.05rem; font-weight:700;">Trial-by-Trial Data Log</h4>
+            <p class="form-help" style="margin:0;">Interactive preview of the dataset to be exported.</p>
+          </div>
+          <div class="flex-row" style="flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btnDownloadCSV">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Full Trial CSV
+            </button>
+            <button class="btn btn-success" id="btnDownloadLayoutsCSV">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Download Repeated Layouts Log (.csv)
+            </button>
+            <button class="btn btn-secondary" id="btnDownloadJSON">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Export JSON
+            </button>
+            <button class="btn btn-outline" id="btnResetExperiment">
+              New Participant
+            </button>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="data-table" id="trialDataTable">
+            <thead>
+              <tr>
+                <th>Block</th>
+                <th>Trial</th>
+                <th>Quadrant</th>
+                <th>Target Loc</th>
+                <th>Orientation</th>
+                <th>Config</th>
+                <th>Set Size</th>
+                <th>Sound</th>
+                <th>Response</th>
+                <th>Acc</th>
+                <th>RT (ms)</th>
+                <th>Trajectory</th>
+              </tr>
+            </thead>
+            <tbody id="trialTableBody">
+              <!-- Populated by experiment.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Repeated Layouts by Quadrant Section -->
+      <div class="data-table-container">
+        <div class="table-header-row">
+          <div>
+            <h4 style="font-size:1.05rem; font-weight:700;">Repeated Layouts by Quadrant (Contextual Cueing Configurations)</h4>
+            <p class="form-help" style="margin:0;">Frozen distractor L positions associated with each quadrant and preserved across blocks.</p>
+          </div>
+          <div>
+            <button class="btn btn-success btn-sm" id="btnDownloadLayoutsCSV2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Layouts CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-scroll" style="max-height: 320px;">
+          <table class="data-table" id="layoutsDataTable">
+            <thead>
+              <tr>
+                <th>Quadrant</th>
+                <th>Config ID</th>
+                <th>Set Size</th>
+                <th>Sound Factor</th>
+                <th>Candidate Target Locations</th>
+                <th>Distractor Positions (Row, Col, Orient)</th>
+                <th>Target Positions Used by Block</th>
+              </tr>
+            </thead>
+            <tbody id="layoutsTableBody">
+              <!-- Populated by experiment.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= VIEW 3: Immersive Experiment Screen ================= -->
+  <div id="experiment-view">
+    <div class="experiment-hud">
+      <div class="hud-progress">
+        <strong id="hudBlockLabel">Block 1 of 2</strong>
+        <span style="color: rgba(255,255,255,0.4);">&bull;</span>
+        <span id="hudTrialLabel">Trial 1 of 32</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="hudProgressFill"></div>
+        </div>
+      </div>
+      <div class="hud-indicators">
+        <span id="hudModeIndicator">Keyboard Mode</span>
+        <span style="color: rgba(255,255,255,0.4);">&bull;</span>
+        <span style="color: var(--text-muted);">Press ESC to pause/quit</span>
+      </div>
+    </div>
+
+    <div class="experiment-stage" id="experimentStage">
+      <!-- High-DPI Canvas for stimuli -->
+      <canvas id="searchCanvas" width="720" height="720"></canvas>
+      <div class="fixation-cross" id="fixationCross">+</div>
+      <div class="mouse-mode-hint" id="mouseHint" style="display:none;">Click directly on the target T</div>
+    </div>
+  </div>
+
+  <!-- Trajectory Modal for inspecting continuous mouse stream -->
+  <div class="modal-overlay" id="trajectoryModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle">Mouse Trajectory Coordinates</h3>
+        <button class="btn btn-outline btn-sm" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="form-help" id="modalSubtitle" style="margin-bottom:0.75rem;"></p>
+        <div style="max-height: 250px; overflow-y: auto; background: var(--bg-input); padding: 0.75rem; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem;" id="modalCoordinatesContent">
+        </div>
+        <div style="margin-top: 1rem; width: 100%; height: 180px;" id="trajectoryPlotContainer">
+          <!-- Trajectory SVG visualization -->
+        </div>
+      </div>
+      <div class="text-right">
+        <button class="btn btn-secondary btn-sm" id="btnCloseModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="experiment.js"></script>
+</body>
+</html>
